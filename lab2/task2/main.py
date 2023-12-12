@@ -35,11 +35,9 @@ def update_results():
     )
 
 
-# Создаем основное окно
 root = tk.Tk()
 root.title("Lab2")
 
-# Создаем и размещаем элементы интерфейса
 label_threshold = tk.Label(root, text="Minimal thresholds sum:")
 label_threshold.grid(row=0, column=0, padx=10, pady=10)
 
