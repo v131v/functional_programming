@@ -3,11 +3,11 @@ import tkinter as tk
 
 
 def filter_orders(orders, customer_id):
-    return [order for order in orders if order["customer_id"] == customer_id]
+    return filter(lambda order: order["customer_id"] == customer_id, orders)
 
 
 def total_order_amount(orders):
-    return sum(order["amount"] for order in orders)
+    return sum(map(lambda order: order["amount"], orders))
 
 
 def average_order_cost(orders):

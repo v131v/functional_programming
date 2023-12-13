@@ -4,7 +4,7 @@ from tkinter import ttk
 
 
 def filter_users_by_expenses(users, threshold):
-    filtered_users = [user for user in users if sum(user["expenses"]) > threshold]
+    filtered_users = filter(lambda user: sum(user["expenses"]) > threshold, users)
     return filtered_users
 
 
@@ -13,7 +13,7 @@ def calculate_total_expenses_per_user(user):
 
 
 def calculate_total_expenses_all_users(users):
-    total_expenses = sum(sum(user["expenses"]) for user in users)
+    total_expenses = sum(map(lambda user: sum(user["expenses"]), users))
     return total_expenses
 
 
