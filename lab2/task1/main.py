@@ -28,8 +28,11 @@ def handler1():
 def handler2():
     global filtered_students
     global student_avgs
-    student_avgs = map(
-        lambda student: calculate_student_average(student["grades"]), filter_students
+    student_avgs = list(
+        map(
+            lambda student: calculate_student_average(student["grades"]),
+            filtered_students,
+        )
     )
 
     total_avg = calculate_total_average(filtered_students)

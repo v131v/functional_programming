@@ -6,16 +6,18 @@ def filter_students(students, target_ages=None, target_subjects=None):
     filtered_students = students.copy()
 
     if target_ages:
-        filtered_students = filter(
-            lambda student: student["age"] in target_ages, students
+        filtered_students = list(
+            filter(lambda student: student["age"] in target_ages, students)
         )
 
     if target_subjects:
-        filtered_students = filter(
-            lambda student: all(
-                map(lambda grade: grade in student["grades"], target_subjects)
-            ),
-            students,
+        filtered_students = list(
+            filter(
+                lambda student: all(
+                    map(lambda grade: grade in student["grades"], target_subjects)
+                ),
+                students,
+            )
         )
 
     return filtered_students
@@ -35,9 +37,12 @@ def aggregate_students_with_highest_mark(students):
         map(lambda student: calculate_student_average(student["grades"]), students)
     )
 
-    aggregated_students = filter(
-        lambda student: calculate_student_average(student["grades"]) == highest_average,
-        students,
+    aggregated_students = list(
+        filter(
+            lambda student: calculate_student_average(student["grades"])
+            == highest_average,
+            students,
+        )
     )
     return aggregated_students
 

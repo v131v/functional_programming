@@ -3,7 +3,7 @@ import tkinter as tk
 
 
 def filter_orders(orders, customer_id):
-    return filter(lambda order: order["customer_id"] == customer_id, orders)
+    return list(filter(lambda order: order["customer_id"] == customer_id, orders))
 
 
 def total_order_amount(orders):
