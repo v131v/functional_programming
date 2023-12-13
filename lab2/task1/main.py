@@ -15,7 +15,7 @@ entry2 = tk.Entry(root)
 
 
 def get_data(entry):
-    return [int(age) for age in entry.get().split(" ")]
+    return map(int, entry.get().split(" "))
 
 
 def handler1():
@@ -28,9 +28,9 @@ def handler1():
 def handler2():
     global filtered_students
     global student_avgs
-    student_avgs = [
-        calculate_student_average(student["grades"]) for student in filtered_students
-    ]
+    student_avgs = map(
+        lambda student: calculate_student_average(student["grades"]), filter_students
+    )
 
     total_avg = calculate_total_average(filtered_students)
     messagebox.showinfo(f"Total avg: {total_avg}", student_avgs)
@@ -39,9 +39,7 @@ def handler2():
 def handler3():
     global filtered_students
     global student_avgs
-    highest_avg_students = aggregate_students_with_highest_mark(
-        filtered_students, student_avgs
-    )
+    highest_avg_students = aggregate_students_with_highest_mark(filtered_students)
     messagebox.showinfo(f"Aggregated max: {max(student_avgs)}", highest_avg_students)
 
 
