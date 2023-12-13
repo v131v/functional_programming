@@ -9,6 +9,8 @@ class ChatClient:
         self.loop = loop
         self.name = simpledialog.askstring("Name", "Enter name:")
         self.room = simpledialog.askstring("Room", "Enter room name:")
+        self.writer: asyncio.StreamWriter = None
+        self.reader: asyncio.StreamReader = None
         self.initialize_gui()
 
     def initialize_gui(self):
