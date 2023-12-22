@@ -3,12 +3,12 @@ import tkinter as tk
 from tkinter import scrolledtext, simpledialog
 
 
-class ChatClient:
+class Client:
     def __init__(self, root, loop):
         self.root = root
         self.loop = loop
         self.name = simpledialog.askstring("Name", "Enter name:")
-        self.room = simpledialog.askstring("Room", "Enter room name:")
+        self.room = ""
         self.writer: asyncio.StreamWriter = None
         self.reader: asyncio.StreamReader = None
         self.initialize_gui()
@@ -23,10 +23,7 @@ class ChatClient:
         self.entry.bind("<Return>", self.send)
 
     async def connect(self):
-        self.reader, self.writer = await asyncio.open_connection("127.0.0.1", 8888)
-
-        self.writer.write(self.room.encode())
-        await self.writer.drain()
+        self.reader, self.writer = await asyncio.open_connection("127.0.0.1", 8910)
 
         self.loop.create_task(self.start_receive())
 
@@ -39,6 +36,13 @@ class ChatClient:
 
     def send(self, event):
         message = self.entry.get()
+
+        if "/change_name" in message.split():
+            self.name = message.split()[-1]
+
+        if "/change_room" in message.split():
+            self.room = message.split()[-1]
+
         if message:
             self.writer.write(f"{self.name}: {message}\n".encode())
             self.entry.delete(0, tk.END)
@@ -47,7 +51,7 @@ class ChatClient:
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     root = tk.Tk()
-    client = ChatClient(root, loop)
+    client = Client(root, loop)
 
     async def tkUpdate():
         while True:
@@ -62,6 +66,6 @@ if __name__ == "__main__":
             )
         )
     except KeyboardInterrupt:
-        pass
+        print("Stopped")
     finally:
         loop.close()

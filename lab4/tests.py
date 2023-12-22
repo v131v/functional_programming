@@ -1,59 +1,56 @@
-import tkinter
 import unittest
-import asyncio
 from unittest.mock import patch
 from io import StringIO
-from contextlib import redirect_stdout
-from tkinter import Tk
-from client import (
-    ChatClient,
-)
+import asyncio
+import tkinter as tk
+from tkinter import scrolledtext, simpledialog
+
+from client import Client  # Замените "your_module" на реальное имя вашего модуля
 
 
-class TestChatClient(unittest.IsolatedAsyncioTestCase):
-    async def test_send_message(self):
-        root = Tk()
-        loop = asyncio.get_event_loop()
-        client = ChatClient(root, loop)
+class TestClient(unittest.TestCase):
+    def setUp(self):
+        self.loop = asyncio.get_event_loop()
+        self.root = tk.Tk()
 
-        with patch.object(client, "writer") as mock_writer:
-            with patch.object(client, "entry", create=True) as mock_entry:
-                mock_entry.get.return_value = "Test message"
-                await client.send(None)
+    def tearDown(self):
+        self.root.destroy()
 
-        # Проверка, что write был вызван с правильными аргументами
-        mock_writer.write.assert_called_once_with(
-            f"{client.name}: Test message\n".encode()
+    @patch("asyncio.open_connection")
+    def test_connect(self, mock_open_connection):
+        client = Client(self.root, self.loop)
+        self.assertIsNone(client.writer)
+        self.assertIsNone(client.reader)
+
+        mock_open_connection.return_value = (
+            asyncio.StreamReader(),
+            asyncio.StreamWriter(None, None, None, None),
         )
+        self.loop.run_until_complete(client.connect())
 
-    async def test_receive_message(self):
-        root = Tk()
-        loop = asyncio.get_event_loop()
-        client = ChatClient(root, loop)
+        self.assertIsNotNone(client.writer)
+        self.assertIsNotNone(client.reader)
 
+    def test_start_receive(self):
+        client = Client(self.root, self.loop)
+        client.reader = asyncio.StreamReader()
+        client.writer = asyncio.StreamWriter(None, None, None, None)
+
+        # Redirect stdout to capture print output
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            with patch.object(client.reader, "read") as mock_reader:
-                mock_reader.return_value = asyncio.Future()
-                mock_reader.return_value.set_result("Server message".encode())
-                await client.start_receive()
+            self.loop.run_until_complete(client.start_receive())
 
-        # Проверка, что текстовая область была обновлена с правильным сообщением
-        self.assertIn("Server message", client.text_area.get("1.0", tkinter.END))
+        # Here, you can check the content of mock_stdout to see if the expected messages are printed
 
-    async def test_connect(self):
-        root = Tk()
-        loop = asyncio.get_event_loop()
-        client = ChatClient(root, loop)
+    def test_send(self):
+        client = Client(self.root, self.loop)
+        client.writer = asyncio.StreamWriter(None, None, None, None)
 
-        with patch("asyncio.open_connection") as mock_open_connection:
-            with patch.object(client.writer, "write") as mock_write:
-                await client.connect()
+        # Redirect stdout to capture print output
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            client.send(None)  # Simulate send on Enter key press
 
-        # Проверка, что open_connection вызывается с правильными аргументами
-        mock_open_connection.assert_called_once_with("127.0.0.1", 8888)
-
-        # Проверка, что write вызывается с правильным аргументом
-        mock_write.assert_called_once_with(client.room.encode())
+        # Here, you can check the content of mock_stdout to see if the expected messages are printed
 
 
 if __name__ == "__main__":

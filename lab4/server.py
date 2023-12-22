@@ -1,7 +1,7 @@
 import asyncio
 
 
-class ChatServer:
+class Server:
     def __init__(self):
         self.clients = set()
         self.rooms = {}
@@ -9,19 +9,7 @@ class ChatServer:
     async def handle(self, reader, writer):
         addr = writer.get_extra_info("peername")
         print(f"Client connected {addr}")
-
-        while True:
-            room_name = await reader.read(100)
-            if not room_name:
-                continue
-
-            room_name = room_name.decode().strip()
-            print(f"CLinet {addr},  room {room_name}")
-            if room_name not in self.rooms:
-                self.rooms[room_name] = set()
-
-            self.rooms[room_name].add(writer)
-            break
+        room_name = ""
 
         try:
             while True:
@@ -30,14 +18,39 @@ class ChatServer:
                     continue
 
                 message = data.decode()
+
+                if "/get_rooms" in message.split():
+                    print(f"get rooms: {message}")
+                    writer.write(
+                        f"List of rooms: {', '.join(self.rooms.keys())}\n".encode()
+                    )
+                    await writer.drain()
+                    continue
+
+                if "/change_room" in message.split():
+                    print(f"change room: {room_name}, {message}")
+                    await self.broadcast("user leaved room\n", writer, room_name)
+
+                    addr = writer.get_extra_info("peername")
+                    if writer in self.rooms.get(room_name, set()):
+                        self.rooms[room_name].remove(writer)
+                    room_name = message.split()[-1]
+
+                    print(f"CLient {addr},  room {room_name}")
+                    if room_name not in self.rooms:
+                        self.rooms[room_name] = set()
+                    self.rooms[room_name].add(writer)
+                    continue
+
                 await self.broadcast(message, writer, room_name)
-        except asyncio.CancelledError:
-            pass
+
+        except Exception as e:
+            print(e)
         finally:
             print(f"Client {addr} disconnected")
             self.rooms[room_name].remove(writer)
             await self.broadcast(
-                f"CLinet {addr} leaved chat room {room_name}\n", writer, room_name
+                f"CLinet {addr} leaved room {room_name}\n", writer, room_name
             )
             writer.close()
             await writer.wait_closed()
@@ -65,5 +78,5 @@ class ChatServer:
 
 
 if __name__ == "__main__":
-    chat_server = ChatServer()
-    asyncio.run(chat_server.run("127.0.0.1", 8888))
+    chat_server = Server()
+    asyncio.run(chat_server.run("127.0.0.1", 8910))
